@@ -12,13 +12,15 @@ async function getUser(req, res) {
 }
 
 async function createUser(req, res) {
-  const user = await userService.createUser(req.body);
-  res.status(201).json(user);
+  const result = await userService.createUser(req.body);
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.status(201).json(result);
 }
 
 async function updateUser(req, res) {
-  const user = await userService.updateUser(req.params.id, req.body);
-  res.json(user);
+  const result = await userService.updateUser(req.params.id, req.body);
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json(result);
 }
 
 async function deleteUser(req, res) {

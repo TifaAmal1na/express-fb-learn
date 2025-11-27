@@ -1,11 +1,22 @@
 const db = require('../config/firebase');
 const collection = db.collection('users');
 
-function filterUserData(data) {
-  return {
-    name: data.name || null,
-    age: data.age || null,
-  };
+function validateUserData(data) {
+  const allowed = ["name", "age"];
+  const keys = Object.keys(data);
+
+  const invalid = keys.filter(k => !allowed.includes(k));
+  if (invalid.length > 0) {
+    return { error: `Field tidak valid: ${invalid.join(", ")}` };
+  }
+
+  if (typeof data.name !== "string")
+    return { error: "name harus string" };
+
+  if (typeof data.age !== "number")
+    return { error: "age harus number" };
+
+  return { valid: true };
 }
 
 async function getAllUsers() {
@@ -20,15 +31,19 @@ async function getUserById(id) {
 }
 
 async function createUser(data) {
-  const filtered = filterUserData(data);
-  const docRef = await collection.add(filtered);
-  return { id: docRef.id, ...filtered };
+  const check = validateUserData(data);
+  if (check.error) return { error: check.error };
+
+  const docRef = await collection.add(data);
+  return { id: docRef.id, ...data };
 }
 
 async function updateUser(id, data) {
-  const filtered = filterUserData(data);
-  await collection.doc(id).update(filtered);
-  return { id, ...filtered };
+  const check = validateUserData(data);
+  if (check.error) return { error: check.error };
+
+  await collection.doc(id).update(data);
+  return { id, ...data };
 }
 
 async function deleteUser(id) {
